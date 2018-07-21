@@ -1,0 +1,1 @@
+INSERT INTO ks.user (id , firstname , lastname ) VALUES ( '1','John','Doe');
