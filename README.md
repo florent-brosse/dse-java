@@ -20,3 +20,5 @@ To stop the app:
 Control-C to kill `mvn spring-boot:run`
 mvn docker:stop 
 ```
+
+`docker exec -it 9a67c0b21e2f bash` to get bash into the running container

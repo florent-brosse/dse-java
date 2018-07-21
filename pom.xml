@@ -94,6 +94,8 @@
 								</wait>
 								<env>
 									<DS_LICENSE>accept</DS_LICENSE>
+									<DC>dc1</DC>
+									<NUM_TOKENS>1</NUM_TOKENS>
 								</env>
 								<ports>
 									<port>9042:9042</port>
