@@ -61,6 +61,14 @@ public class DseProperties {
 
 		@NotBlank
 		private String storename;
+		
+		@NotBlank
+		private String truststoreFilePath;
+		
+		private boolean enableSSL;
+		
+		@NotBlank
+		private String truststorePassword;
 
 		private Integer readTimeout = 3000;
 		private Integer connectionTimeout = 3000;
@@ -170,6 +178,29 @@ public class DseProperties {
 
 		public void setKeyspace(String keyspace) {
 			this.keyspace = keyspace;
+		}
+
+		public boolean isEnableSSL() {
+			return enableSSL;
+		}
+
+		public void setEnableSSL(boolean enableSSL) {
+			this.enableSSL = enableSSL;
+		}
+		public String getTruststoreFilePath() {
+			return truststoreFilePath;
+		}
+
+		public void setTruststoreFilePath(String truststoreFilePath) {
+			this.truststoreFilePath = truststoreFilePath;
+		}
+
+		public String getTruststorePassword() {
+			return truststorePassword;
+		}
+
+		public void setTruststorePassword(String truststorePassword) {
+			this.truststorePassword = truststorePassword;
 		}
 	}
 

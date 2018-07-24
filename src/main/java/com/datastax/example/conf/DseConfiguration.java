@@ -1,19 +1,29 @@
 package com.datastax.example.conf;
 
+import java.io.InputStream;
+import java.security.KeyStore;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.ClassPathResource;
 
 import com.datastax.driver.core.HostDistance;
+import com.datastax.driver.core.JdkSSLOptions;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.QueryOptions;
+import com.datastax.driver.core.SSLOptions;
 import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.policies.ConstantSpeculativeExecutionPolicy;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.LoadBalancingPolicy;
 import com.datastax.driver.core.policies.TokenAwarePolicy;
 import com.datastax.driver.dse.DseCluster;
+import com.datastax.driver.dse.DseCluster.Builder;
 import com.datastax.driver.dse.DseSession;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
@@ -68,7 +78,7 @@ public class DseConfiguration {
 		LoadBalancingPolicy loadBalancingPolicy = new TokenAwarePolicy(
 				DCAwareRoundRobinPolicy.builder().withLocalDc(dseProperties.getConf().getLocalDC()).build());
 
-		DseCluster cluster = DseCluster.builder()
+		Builder builder = DseCluster.builder()
 				.addContactPoints(dseProperties.getConf().getContactPoints().toArray(new String[dseProperties.getConf().getContactPoints().size()]))
 				.withPort(dseProperties.getConf().getPort())
 				.withCredentials(dseProperties.getConf().getLogin(), dseProperties.getConf().getPassword())
@@ -79,8 +89,11 @@ public class DseConfiguration {
 																								// execution is launched
 						dseProperties.getConf().getConstantSpeculativeExecutionPolicyMaxNumber() // maximum number of
 																									// executions
-				)).build();
-		return cluster;
+				));
+		 if(dseProperties.getConf().isEnableSSL()) {
+			 builder = builder.withSSL(getSSLOptions());
+		 }
+		return builder.build();
 	}
 
 	@Bean(name="solrSession")
@@ -116,7 +129,7 @@ public class DseConfiguration {
 		LoadBalancingPolicy loadBalancingPolicy = new TokenAwarePolicy(
 				DCAwareRoundRobinPolicy.builder().withLocalDc(dseProperties.getSolrConf().getLocalDC()).build());
 
-		DseCluster cluster = DseCluster.builder()
+		 Builder builder = DseCluster.builder()
 				.addContactPoints(dseProperties.getSolrConf().getContactPoints().toArray(new String[dseProperties.getSolrConf().getContactPoints().size()]))
 				.withPort(dseProperties.getSolrConf().getPort())
 				.withCredentials(dseProperties.getSolrConf().getLogin(), dseProperties.getSolrConf().getPassword())
@@ -128,13 +141,64 @@ public class DseConfiguration {
 																									// launched
 						dseProperties.getSolrConf().getConstantSpeculativeExecutionPolicyMaxNumber() // maximum number
 																										// of executions
-				)).build();
-		return cluster;
+				));
+		 if(dseProperties.getSolrConf().isEnableSSL()) {
+			 builder = builder.withSSL(getSolrSSLOptions());
+		 }
+		 return builder.build();
 	}
 
 	@Bean
 	public UserAccessor userAccessor() {
 		return manager().createAccessor(UserAccessor.class);
 
+	}
+	
+	@SuppressWarnings("deprecation")
+	protected SSLOptions getSSLOptions() {
+		
+		JdkSSLOptions sslOptions;
+		try {
+			SSLContext context = SSLContext.getInstance("TLS");
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+
+			
+			InputStream in = new ClassPathResource(dseProperties.getConf().getTruststoreFilePath()).getInputStream();
+			KeyStore ks = KeyStore.getInstance("JKS");
+			ks.load(in,dseProperties.getConf().getTruststorePassword().toCharArray());
+
+			tmf.init(ks);
+			context.init(null, tmf.getTrustManagers(), null);
+
+			sslOptions = JdkSSLOptions.builder().withSSLContext(context).build();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+		return sslOptions ;
+	}
+	
+	@SuppressWarnings("deprecation")
+	public SSLOptions getSolrSSLOptions() {
+		
+		JdkSSLOptions sslOptions;
+		try {
+			SSLContext context = SSLContext.getInstance("TLS");
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+
+			
+			InputStream in = new ClassPathResource(dseProperties.getSolrConf().getTruststoreFilePath()).getInputStream();
+			KeyStore ks = KeyStore.getInstance("JKS");
+			ks.load(in,dseProperties.getSolrConf().getTruststorePassword().toCharArray());
+
+			tmf.init(ks);
+			context.init(null, tmf.getTrustManagers(), null);
+
+			sslOptions = JdkSSLOptions.builder().withSSLContext(context).build();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+		return sslOptions ;
 	}
 }
