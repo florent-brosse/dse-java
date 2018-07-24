@@ -1,7 +1,5 @@
 package com.datastax.example.conf;
 
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,7 +69,7 @@ public class DseConfiguration {
 				DCAwareRoundRobinPolicy.builder().withLocalDc(dseProperties.getConf().getLocalDC()).build());
 
 		DseCluster cluster = DseCluster.builder()
-				.addContactPoint(dseProperties.getConf().getContactPoints().stream().collect(Collectors.joining(",")))
+				.addContactPoints(dseProperties.getConf().getContactPoints().toArray(new String[dseProperties.getConf().getContactPoints().size()]))
 				.withPort(dseProperties.getConf().getPort())
 				.withCredentials(dseProperties.getConf().getLogin(), dseProperties.getConf().getPassword())
 				.withQueryOptions(queryOptions).withSocketOptions(socketOptions).withPoolingOptions(poolingOptions)
@@ -119,8 +117,7 @@ public class DseConfiguration {
 				DCAwareRoundRobinPolicy.builder().withLocalDc(dseProperties.getSolrConf().getLocalDC()).build());
 
 		DseCluster cluster = DseCluster.builder()
-				.addContactPoint(
-						dseProperties.getSolrConf().getContactPoints().stream().collect(Collectors.joining(",")))
+				.addContactPoints(dseProperties.getSolrConf().getContactPoints().toArray(new String[dseProperties.getSolrConf().getContactPoints().size()]))
 				.withPort(dseProperties.getSolrConf().getPort())
 				.withCredentials(dseProperties.getSolrConf().getLogin(), dseProperties.getSolrConf().getPassword())
 				.withQueryOptions(queryOptions).withSocketOptions(socketOptions).withPoolingOptions(poolingOptions)
