@@ -11,7 +11,7 @@ To launch IT use `mvn verify`
 To launch the app (we use the IT profile to create the keyspace, the user table and the SOLR index):
 ```
 mvn docker:start 
-mvn spring-boot:run -Dspring-boot.run.profiles=IT
+	mvn spring-boot:run -Dspring-boot.run.profiles=IT
 ```
 go to http://localhost:8080
 
